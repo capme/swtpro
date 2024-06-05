@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./compose/Dockerfile
+    ports:
+      - "${APP_PORT}:5000"
+    volumes:
+      - "./:/app"
+    env_file:
+      - .env
+    networks:
+      - sawitpro-network
+  database:
+    image: mysql:8
+    platform: linux/x86_64
+    ports:
+      - 3306:3306
+    env_file:
+      - .env
+    volumes:
+      - "$PWD/mysql_data:/var/lib/mysql"
+    entrypoint:
+      - docker-entrypoint.sh
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    networks:
+      - sawitpro-network
+networks:
+  sawitpro-network:
+    name: sawitpro-network
