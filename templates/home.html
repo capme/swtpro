@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h2>Home page</h2>
+
+    <b>{{ app_data['app_message'] }}</b>
+
+    <p><a href="/logout"> [Logout] </a> | <a href="/upload"> [Upload file] </a></p>
+
+    <table>
+        {% for item_list_image in app_data['images'] %}
+        <tr>
+            <td>{{ item_list_image.path_image }}</td>
+            <td><img src="{{ item_list_image.path_image }}" width="100" height="100"></td>
+            <td><a href="/delete/{{ item_list_image.id }}"> [Delete file] </a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

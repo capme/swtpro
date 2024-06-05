@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h2>Upload page</h2>
+
+    <b>{{ app_data['app_message'] }}</b>
+
+    <p><a href="/logout"> [Logout] </a> | <a href="/home"> [Home] </a></p>
+
+    <form action = "/upload" method = "post" enctype="multipart/form-data">  
+        <input type="file" name="file" />  
+        <input type = "submit" value="Upload">  
+    </form>
+{% endblock %}
