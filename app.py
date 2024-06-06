@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_session import Session
 from dotenv import load_dotenv
-import os
+import os, io
 
 
 DEVELOPMENT_ENV = True
@@ -27,6 +27,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://{}:{}@database:3306/{}".format(
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['UPLOAD_FOLDER'] = os.path.join('static', UPLOAD_FOLDER)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
 Session(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -61,6 +63,18 @@ def validate_password(param):
     if set(param) <= set(whitelist):
         return True
     return False
+
+# validate allowed ext file upload
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# to get img size
+def seek_size(f):
+    pos = f.tell()
+    f.seek(0, io.SEEK_END)
+    size = f.tell()
+    f.seek(pos)
+    return size
 
 
 # Route URLs
@@ -181,14 +195,26 @@ def upload():
 
     if request.method == 'POST':
         f = request.files['file']
+        filename = f.filename
+        filesize = seek_size(f)
 
-        if not f:
+        # validate the file upload object
+        if not f or not allowed_file(filename):
             app_data = {
-                "app_message": "Please select image to be uploaded!",
+                "app_message": "Please select allowed image ('png', 'jpg', 'jpeg', 'gif') to be uploaded!",
+            }
+
+            return render_template("upload.html", app_data=app_data)
+
+        # max file upload 2 MB (2 * 1024 * 1024)
+        if filesize > 2097152:
+            app_data = {
+                "app_message": "Maximum file upload is 2 MB",
             }
             return render_template("upload.html", app_data=app_data)
 
-        full_filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
+
+        full_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         image_upload = ImageUpload(
             id_user=session["id"],
             path_image=full_filename,
@@ -197,10 +223,10 @@ def upload():
         db.session.add(image_upload)
         db.session.commit()
 
-        f.save(os.path.join(app.config["UPLOAD_FOLDER"], f.filename))
+        f.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
         
         app_data = {
-            "app_message": "Success upload file {}".format(f.filename),
+            "app_message": "Success upload file {}".format(filename),
         }
         return render_template("upload.html", app_data=app_data)
     else:
