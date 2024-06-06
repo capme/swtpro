@@ -1,6 +1,6 @@
 # sawitPRO #
 
-Before you run alpha and beta app, please install docker and docker-compose.
+Before you run the app, please install docker and docker-compose.
 
 ### How to run the web app? ###
 
